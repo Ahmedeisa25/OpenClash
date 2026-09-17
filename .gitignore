@@ -25,6 +25,8 @@ Desktop.ini
 *.la
 *.ipk
 *.apk
+!bin/*.ipk
+!bin/*.apk
 *.tar.gz
 *.tar.bz2
 *.tar.xz
@@ -32,6 +34,7 @@ Desktop.ini
 
 # Compiled po2lmo tool
 luci-app-openclash/tools/po2lmo/po2lmo
+luci-app-openclash/tools/po2lmo/src/po2lmo
 luci-app-openclash/tools/po2lmo/src/*.o
 
 # Node.js (codemirror)

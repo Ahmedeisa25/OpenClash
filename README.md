@@ -17,11 +17,46 @@
 * [Wiki](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/SKILL.md)
 
 
+安装 / Install
+---
+
+This fork is a **lite** OpenClash for nftables + Fake-IP + Rule on MT7621 / 128MB RAM. **MetaCubeXD is bundled**; the Mihomo core is still downloaded after install.
+
+OpenWrt 25.12 and snapshots use **apk**. The `.ipk` is an opkg package. Feeding it to apk fails with:
+
+```
+ERROR: luci-app-openclash_0.47.156-lite_all.ipk: v2 package format error
+```
+
+Use the matching package manager and file:
+
+| OpenWrt | Package | Install |
+| --- | --- | --- |
+| 25.12 / snapshot (`apk`) | `bin/luci-app-openclash-0.47.156.apk` | `apk add --allow-untrusted --force-overwrite --clean-protected luci-app-openclash-0.47.156.apk` |
+| 24.10 and older (`opkg`) | `bin/luci-app-openclash_0.47.156-lite_all.ipk` | `opkg install --force-reinstall luci-app-openclash_0.47.156-lite_all.ipk` |
+
+```bash
+# apk (OpenWrt 25.12 / snapshot) — do not pass the .ipk to apk
+apk update
+apk add bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml unzip kmod-nft-tproxy luci-compat luci luci-base
+apk add --allow-untrusted --force-overwrite --clean-protected luci-app-openclash-0.47.156.apk
+```
+
+```bash
+# opkg (OpenWrt 24.10 and older)
+opkg update
+opkg install bash dnsmasq-full curl ca-bundle ip-full ruby ruby-yaml unzip kmod-nft-tproxy luci-compat luci luci-base
+opkg install --force-reinstall luci-app-openclash_0.47.156-lite_all.ipk
+```
+
+Rebuild both packages from this tree with `./tools/pack-openclash.sh` (needs apk-tools 3.x `apk mkpkg` on `PATH` or `APK_BIN`).
+
 下载地址
 ---
 
 
-* IPK & APK [前往下载](https://github.com/vernesong/OpenClash/releases)
+* Lite IPK & APK: `bin/` in this repository
+* Upstream IPK & APK [前往下载](https://github.com/vernesong/OpenClash/releases)
 
 
 依赖

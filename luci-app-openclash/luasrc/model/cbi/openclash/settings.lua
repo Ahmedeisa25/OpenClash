@@ -63,7 +63,6 @@ s:tab("dns", "DNS "..translate("Settings"))
 s:tab("lan_ac", translate("Black&White"))
 s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("geo_update", translate("GEO Update"))
-s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
 s:tab("debug", translate("Core Tests"))
 s:tab("version_update", translate("Version Update"))
@@ -426,11 +425,11 @@ end
 
 ---- Traffic Control
 o = s:taboption("traffic_control", Flag, "router_self_proxy", font_red..bold_on..translate("Router-Self Proxy")..bold_off..font_off)
-o.description = translate("Only Supported for Rule Mode")..", "..font_red..bold_on..translate("ALL Functions In Stream Enhance Tag Will Not Work After Disable")..bold_off..font_off
+o.description = translate("Only Supported for Rule Mode")
 o.default = 1
 
 o = s:taboption("traffic_control", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
-o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include bypassed regions via China IP Route setting) On Port 443")..bold_off..font_off
+o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic On Port 443")..bold_off..font_off
 o.default = 1
 
 o = s:taboption("traffic_control", Flag, "skip_proxy_address", translate("Skip Proxy Address"))
@@ -446,13 +445,6 @@ o.placeholder = translate("443 or 21-443, Use Space to Separate")
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
-
-o = s:taboption("traffic_control", ListValue, "china_ip_route", translate("China IP Route"))
-o.description = translate("Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option")
-o.default = 0
-o:value("0", translate("Disable"))
-o:value("1", translate("Bypass Mainland China"))
-o:value("2", translate("Bypass Overseas"))
 
 o = s:taboption("traffic_control", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
@@ -493,30 +485,7 @@ function o.write(self, section, value)
 	return true
 end
 
-o = s:taboption("traffic_control", Value, "chnroute_pass", translate("Chnroute Bypassed List"))
-o.template = "cbi/tvalue"
-o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
-o.rows = 20
-o.wrap = "off"
-o:depends("enable_redirect_dns", "1")
-o:depends("enable_redirect_dns", "0")
-
-function o.cfgvalue(self, section)
-	return fs.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list") or ""
-end
-function o.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = fs.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list")
-		if value ~= old_value then
-			fs.writefile("/etc/openclash/custom/openclash_custom_chnroute_pass.list", value)
-		end
-	end
-	return true
-end
-
---Stream Enhance
----- update Settings
+---- GEO Update
 o = s:taboption("geo_update", Flag, "geo_auto_update", font_red..bold_on..translate("Auto Update GeoIP MMDB")..bold_off..font_off)
 o.default = 0
 
@@ -694,50 +663,6 @@ o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
-o.description = translate("Auto Update Chnroute Lists")
-o.default = 0
-
-o = s:taboption("chnr_update", ListValue, "chnr_update_week_time", translate("Update Time (Every Week)"))
-o:value("*", translate("Every Day"))
-o:value("1", translate("Every Monday"))
-o:value("2", translate("Every Tuesday"))
-o:value("3", translate("Every Wednesday"))
-o:value("4", translate("Every Thursday"))
-o:value("5", translate("Every Friday"))
-o:value("6", translate("Every Saturday"))
-o:value("0", translate("Every Sunday"))
-o.default = "1"
-
-o = s:taboption("chnr_update", ListValue, "chnr_update_day_time", translate("Update time (every day)"))
-for t = 0,23 do
-o:value(t, t..":00")
-end
-o.default = "0"
-
-o = s:taboption("chnr_update", Value, "chnr_custom_url")
-o.title = translate("Custom Chnroute Lists URL")
-o.rmempty = false
-o.description = translate("Custom Chnroute Lists URL, Click Button Below To Refresh After Edit")
-o:value("https://ispip.clang.cn/all_cn.txt", translate("Clang-CN")..translate("(Default)"))
-o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang-CN-CIDR"))
-o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR-fastly-jsdelivr"))
-o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR-testingcf-jsdelivr"))
-o:value("https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china.txt", translate("gaoyifan-github-Version"))
-o.default = "https://ispip.clang.cn/all_cn.txt"
-
-o = s:taboption("chnr_update", Button, translate("Chnroute Lists Update")) 
-o.title = translate("Update Chnroute Lists")
-o.description = translate("Current Version:").." "..font_green..bold_on.. "IPv4 ("..fs.get_resourse_mtime("/etc/openclash/china_ip_route.ipset")..")"..bold_off..font_off
-o.inputtitle = translate("Check And Update")
-o.inputstyle = "reload"
-o.write = function()
-	m.uci:set("openclash", "config", "enable", 1)
-	m.uci:commit("openclash")
-	SYS.call("/usr/share/openclash/openclash_chnroute.sh >/dev/null 2>&1 &")
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
-
 o = s:taboption("auto_restart", Flag, "auto_restart", translate("Auto Restart"))
 o.description = translate("Auto Restart OpenClash")
 o.default = 0
@@ -790,10 +715,6 @@ o = s:taboption("dashboard", Flag, "dashboard_forward_ssl")
 o.title = translate("Public Dashboard SSL enabled")
 o.default = 0
 o.description = translate("Is SSL enabled For Dashboard Login From Public Network")
-
-o = s:taboption("dashboard", DummyValue, "Dashboard", translate("Switch(Update) Dashboard Version"))
-o.template="openclash/switch_dashboard"
-o.rawhtml = true
 
 o = s:taboption("dashboard", DummyValue, "Yacd", translate("Switch(Update) Yacd Version"))
 o.template="openclash/switch_dashboard"

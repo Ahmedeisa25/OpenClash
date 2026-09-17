@@ -85,21 +85,9 @@
                         </div>
 
                         <!-- Row 3: Settings -->
-                        <div class="card-row stats-grid">
+                        <div class="card-row dual-cards">
                             <div class="sub-card">
-                                <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
-                                <div class="card-content">
-                                    <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group oc-inline-flex">
-                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
-                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
-                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
+                                <div class="card-title"><%:Sniffer%></div>
                                 <div class="card-content">
                                     <div class="card-controls">
                                         <div id="dns-setting-sniffer" class="cbi-button-group oc-inline-flex">
@@ -110,7 +98,7 @@
                                 </div>
                             </div>
                             <div class="sub-card">
-                                <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></a></div>
+                                <div class="card-title"><%:DNS Proxy%></div>
                                 <div class="card-content">
                                     <div class="card-controls">
                                         <div id="dns-setting-respect" class="cbi-button-group oc-inline-flex">
@@ -188,8 +176,8 @@
                     </div>
 
                     <div class="main-card">
-                        <!-- Row 1: Control Panel & Mix Proxy -->
-                        <div class="card-row dual-cards">
+                        <!-- Row 1: Control Panel -->
+                        <div class="card-row full-width">
                             <div class="sub-card">
                                 <div class="card-title"><%:Control Panel%></div>
                                 <div class="card-content">
@@ -202,25 +190,12 @@
                                     <button type="button" class="icon-btn copy-btn" id="copy_secret" title="<%:Copy Secret%>" onclick="return copySecret()"><svg width="14" height="14"><use href="#oc-icon-lock"/></svg></button>
                                 </div>
                             </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Mix Proxy%></div>
-                                <div class="card-content">
-                                    <div class="card-value">
-                                        <span id="_mix_proxy" class="value-indicator"><%:Collecting data...%></span>
-                                    </div>
-                                </div>
-                                <div class="card-actions">
-                                    <button type="button" class="icon-btn copy-btn" id="copy_mix_address" title="<%:Copy Address%>" onclick="return copyMixAddress()"><svg width="14" height="14"><use href="#oc-icon-copy"/></svg></button>
-                                    <button type="button" class="icon-btn action-btn" id="copy_pac_config" title="<%:Get PAC Config%>" onclick="return generatePacConfig()"><svg width="14" height="14"><use href="#oc-icon-globe"/></svg></button>
-                                    <button type="button" class="icon-btn copy-btn" id="copy_mix_secret" title="<%:Copy Auth Info%>" onclick="return copyMixAuth()"><svg width="14" height="14"><use href="#oc-icon-lock"/></svg></button>
-                                </div>
-                            </div>
                         </div>
 
-                        <!-- Row 2: Dashboards -->
+                        <!-- Row 2: Dashboard -->
                         <div class="card-row full-width">
                             <div class="sub-card dashboard-container">
-                                <div class="card-title"><%:Control Panel%><div class="help-link" title="<%:If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
+                                <div class="card-title"><%:Yacd%></div>
                                 <div class="dashboard-buttons">
                                     <button class="dashboard-btn" id="_web"><%:Collecting data...%></button>
                                 </div>
@@ -235,7 +210,6 @@
                                     <button class="dashboard-btn" id="_close_all_connection_btn"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_reload_firewall_btn"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_flush_dns_cache_btn"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_one_key_update_btn"><%:Collecting data...%></button>
                                 </div>
                             </div>
                         </div>
@@ -2842,7 +2816,7 @@
                 DOMCache.respect_rules_on.checked = status.respect_rules == "1";
                 DOMCache.respect_rules_off.checked = status.respect_rules != "1";
             }
-            if (!SettingsManager.pendingOperations.has('oversea_' + status.oversea)) {
+            if (DOMCache.oc_setting_oversea_0 && !SettingsManager.pendingOperations.has('oversea_' + status.oversea)) {
                 if (status.oversea == "0") DOMCache.oc_setting_oversea_0.checked = true;
                 else if (status.oversea == "1") DOMCache.oc_setting_oversea_1.checked = true;
                 else if (status.oversea == "2") DOMCache.oc_setting_oversea_2.checked = true;
@@ -2910,21 +2884,23 @@
                     daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
                 }
 
-                DOMCache.daip.innerHTML = daipContent;   
+                DOMCache.daip.innerHTML = daipContent;
 
                 StateManager.cached_proxy_info = { mixed_port: status.mixed_port, auth_user: status.auth_user, auth_pass: status.auth_pass };
-                var proxy_ip = status.daip;
-                var mix_addr = proxy_ip + ':' + (status.mixed_port || '7893');
-                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--success-color)>" + mix_addr + "</b>";
+                if (DOMCache.mix_proxy) {
+                    var proxy_ip = status.daip;
+                    var mix_addr = proxy_ip + ':' + (status.mixed_port || '7893');
+                    DOMCache.mix_proxy.innerHTML = "<b style=color:var(--success-color)>" + mix_addr + "</b>";
+                }
             } else {
                 DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                 StateManager.cached_proxy_info = null;
-                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
-                DOMCache.copy_secret.style.display = "none";
-                DOMCache.copy_address.style.display = "none";
-                DOMCache.copy_mix_address.style.display = "none";
-                DOMCache.copy_mix_secret.style.display = "none";
-                DOMCache.copy_pac_config.style.display = "none";
+                if (DOMCache.mix_proxy) DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
+                if (DOMCache.copy_secret) DOMCache.copy_secret.style.display = "none";
+                if (DOMCache.copy_address) DOMCache.copy_address.style.display = "none";
+                if (DOMCache.copy_mix_address) DOMCache.copy_mix_address.style.display = "none";
+                if (DOMCache.copy_mix_secret) DOMCache.copy_mix_secret.style.display = "none";
+                if (DOMCache.copy_pac_config) DOMCache.copy_pac_config.style.display = "none";
             }
 
             if (status.clash) {
@@ -3739,7 +3715,7 @@
                     DOMCache.respect_rules_off.checked = info.respect_rules != "1";
                 }
 
-                if (!SettingsManager.pendingOperations.has('oversea_' + info.oversea)) {
+                if (DOMCache.oc_setting_oversea_0 && !SettingsManager.pendingOperations.has('oversea_' + info.oversea)) {
                     if (info.oversea == "0") {
                         DOMCache.oc_setting_oversea_0.checked = true;
                     } else if (info.oversea == "1") {

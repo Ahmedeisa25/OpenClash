@@ -63,17 +63,13 @@
                             </select>
                         </div>
                     </div>
-                    <div class="config-item">
+                    <div class="config-item oc-hidden">
                         <div class="oc-option-title">
                             <span class="oc-option-text"><%:Smart Core%></span>
-                            <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" class="help-link" title="<%:View core infos that support smart group%>">
-                                <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
-                            </a>
                         </div>
                         <div class="form-select-wrapper">
-                            <select class="select-class" id="SMART_ENABLE" onchange="onSmartChange()">
-                                <option value="0"><%:Disabled%></option>
-                                <option value="1"><%:Enabled%></option>
+                            <select class="select-class" id="SMART_ENABLE">
+                                <option value="0" selected="selected"><%:Disabled%></option>
                             </select>
                         </div>
                     </div>

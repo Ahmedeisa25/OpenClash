@@ -369,7 +369,7 @@ while [ $install_retry_count -lt $max_install_retries ]; do
    install_retry_count=$((install_retry_count + 1))
    LOG_TIP "【$install_retry_count/$max_install_retries】Installing the new version, please do not refresh the page or do other operations..."
 
-   packages_to_check="luci-compat kmod-inet-diag kmod-nft-tproxy kmod-ipt-nat iptables-mod-tproxy iptables-mod-extra ipset"
+   packages_to_check="luci-compat kmod-nft-tproxy"
    installed_before=""
    if [ -x "/bin/opkg" ]; then
       for pkg in $packages_to_check; do

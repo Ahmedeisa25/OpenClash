@@ -47,20 +47,12 @@ font_off = [[</b>]]
 bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
-local op_mode = fs.uci_get_config("config", "operation_mode")
-if not op_mode then op_mode = "redir-host" end
+local op_mode = "fake-ip"
 local lan_ip = fs.lanip()
 m = Map("openclash", translate("Plugin Settings"))
 m.pageaction = false
-m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"..
-"<br/>"..translate("Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it")..
-"<br/>"..font_green..translate("Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off")..font_off..
-"<br/>"..font_green..translate("Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check")..font_off..
-"<br/>"..font_green..translate("Note: Game proxy please use nodes except VMess")..font_off..
-"<br/>"..font_green..translate("Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding")..font_off..
-"<br/>"..translate("Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance")..
-"<br/>"..translate("Note: If the connection is abnormal, please follow the steps on this page to check first")..": ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://github.com/vernesong/OpenClash/wiki/%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E5%BC%82%E5%B8%B8%E6%97%B6%E6%8E%92%E6%9F%A5%E5%8E%9F%E5%9B%A0\")'>"..font_green..bold_on..translate("Click to the page")..bold_off..font_off.."</a>"..
-"<br/>"..font_green..translate("For More Useful Meta Core Functions Go Wiki")..": "..font_off.."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/\")'>"..translate("https://wiki.metacubex.one/").."</a>"
+m.description = translate("Lite profile: nftables + Fake-IP + Rule mode for MT7621 / 128MB RAM")..
+"<br/>"..translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -68,49 +60,24 @@ s.anonymous = true
 s:tab("op_mode", translate("Operation Mode"))
 s:tab("traffic_control", translate("Traffic Control"))
 s:tab("dns", "DNS "..translate("Settings"))
-s:tab("stream_enhance", translate("Streaming Enhance"))
 s:tab("lan_ac", translate("Black&White"))
 s:tab("dashboard", translate("Dashboard Settings"))
-s:tab("ipv6", translate("IPv6 Settings"))
-s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEO Update"))
 s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
 s:tab("debug", translate("Core Tests"))
-s:tab("developer", translate("Developer Settings"))
 s:tab("version_update", translate("Version Update"))
-s:tab("oixcloud", translate("oixCloud"))
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
-o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
-if op_mode == "redir-host" then
-o:value("redir-host", translate("redir-host"))
-o:value("redir-host-tun", translate("redir-host(tun mode)"))
-o:value("redir-host-mix", translate("redir-host-mix(tun mix mode)"))
-o.default = "redir-host"
-else
+o.description = translate("Lite build is locked to Fake-IP + nftables (no TUN / redir-host)")
 o:value("fake-ip", translate("fake-ip"))
-o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
-o:value("fake-ip-mix", translate("fake-ip-mix(tun mix mode)"))
 o.default = "fake-ip"
-end
 
 o = s:taboption("op_mode", Flag, "enable_udp_proxy", translate("Proxy UDP Traffics"))
 o.description = translate("The Servers Must Support UDP forwarding").."<br>"..font_red..bold_on.."1."..translate("If Docker is Installed, UDP May Not Forward Normally").."<br>2."..translate("In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability")..bold_off..font_off
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "fake-ip")
 o.default = 1
-
-o = s:taboption("op_mode", ListValue, "stack_type", translate("Select Stack Type"))
-o.description = translate("Select Stack Type For TUN Mode, According To The Running Speed on Your Machine")
-o:depends("en_mode", "redir-host-tun")
-o:depends("en_mode", "fake-ip-tun")
-o:depends("en_mode", "redir-host-mix")
-o:depends("en_mode", "fake-ip-mix")
-o:value("system", translate("System　"))
-o:value("gvisor", translate("gVisor"))
-o:value("mixed", translate("Mixed"))
-o.default = "system"
 
 o = s:taboption("op_mode", ListValue, "proxy_mode", translate("Proxy Mode"))
 o.description = translate("Select Proxy Mode")
@@ -139,10 +106,6 @@ o.default = 0
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")
 o.default = 0
-
----- Operation Mode
-switch_mode = s:taboption("op_mode", DummyValue, "", nil)
-switch_mode.template = "openclash/switch_mode"
 
 ---- DNS Settings
 o = s:taboption("dns", ListValue, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
@@ -418,16 +381,6 @@ luci.ip.neighbors({ family = 4 }, function(n)
 	end
 end)
 
-if string.len(SYS.exec("/usr/share/openclash/openclash_get_network.lua 'gateway6'")) ~= 0 then
-	luci.ip.neighbors({ family = 6 }, function(n)
-		if n.mac and n.dest then
-			if n.hostname then
-				hostname = " [".. n.hostname .."]"
-			end
-			table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 6})
-		end
-	end)
-end
 
 table.sort(all_neighbors, ip_compare)
 
@@ -565,431 +518,6 @@ function o.write(self, section, value)
 end
 
 --Stream Enhance
-o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
-o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc")
-o.default = 0
-o:depends("router_self_proxy", "1")
-
-o = s:taboption("stream_enhance", Button, translate("Flush Unlock Test Cache")) 
-o.title = translate("Flush Unlock Test Cache")
-o.inputtitle = translate("Flush Cache")
-o.inputstyle = "reload"
-o.write = function()
-	SYS.call("rm -rf /etc/openclash/history/streaming_unlock_cache >/dev/null 2>&1 &")
-end
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))
-o.default = "30"
-o.datatype = "uinteger"
-o:depends("stream_auto_select", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", ListValue, "stream_auto_select_logic", font_red..bold_on..translate("Auto Select Logic")..bold_off..font_off)
-o.default = "urltest"
-o:value("urltest", translate("Urltest"))
-o:value("random", translate("Random"))
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_expand_group", font_red..bold_on..translate("Expand Group")..bold_off..font_off)
-o.description = translate("Automatically Expand The Group When Selected")
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_close_con", translate("Close Old Connections"))
-o.description = translate("Automatically Close Old Connections When New Unlock Node Selected")
-o.default = 1
-o:depends("stream_auto_select", "1")
-
---Netflix
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", font_red..translate("Netflix")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_netflix", translate("Group Filter"))
-o.placeholder = "Netflix|奈飞"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_netflix", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_netflix", translate("Unlock Region Filter"))
-o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_netflix", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_netflix", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_netflix", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Netflix", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Netflix"
-o:depends("stream_auto_select_netflix", "1")
-
---Disney Plus
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", font_red..translate("Disney Plus")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Group Filter"))
-o.placeholder = "Disney|迪士尼"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_disney", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_disney", translate("Unlock Region Filter"))
-o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_disney", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_disney", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_disney", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Disney Plus", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Disney Plus"
-o:depends("stream_auto_select_disney", "1")
-
---YouTube Premium
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", font_red..translate("YouTube Premium")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_ytb", translate("Group Filter"))
-o.placeholder = "YouTube|油管"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_ytb", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_ytb", translate("Unlock Region Filter"))
-o.placeholder = "HK|US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_ytb", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_ytb", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_ytb", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "YouTube Premium", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "YouTube Premium"
-o:depends("stream_auto_select_ytb", "1")
-
---Amazon Prime Video
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", font_red..translate("Amazon Prime Video")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_prime_video", translate("Group Filter"))
-o.placeholder = "Amazon|Prime Video"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_prime_video", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_prime_video", translate("Unlock Region Filter"))
-o.placeholder = "HK|US|SG"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_prime_video", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_prime_video", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_prime_video", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Amazon Prime Video", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Amazon Prime Video"
-o:depends("stream_auto_select_prime_video", "1")
-
---HBO Max
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", font_red..translate("HBO Max")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_max", translate("Group Filter"))
-o.placeholder = "HBO|HBOMax|HBO Max"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_hbo_max", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_max", translate("Unlock Region Filter"))
-o.placeholder = "US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_hbo_max", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_max", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_hbo_max", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "HBO Max", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "HBO Max"
-o:depends("stream_auto_select_hbo_max", "1")
-
---TVB Anywhere+
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", font_red..translate("TVB Anywhere+")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_tvb_anywhere", translate("Group Filter"))
-o.placeholder = "TVB"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_tvb_anywhere", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anywhere", translate("Unlock Region Filter"))
-o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_tvb_anywhere", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_tvb_anywhere", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_tvb_anywhere", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "TVB Anywhere+", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "TVB Anywhere+"
-o:depends("stream_auto_select_tvb_anywhere", "1")
-
---DAZN
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_dazn", font_red..translate("DAZN")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_dazn", translate("Group Filter"))
-o.placeholder = "DAZN"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_dazn", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_dazn", translate("Unlock Region Filter"))
-o.placeholder = "DE"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_dazn", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_dazn", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_dazn", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "DAZN", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "DAZN"
-o:depends("stream_auto_select_dazn", "1")
-
---Paramount Plus
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_paramount_plus", font_red..translate("Paramount Plus")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_paramount_plus", translate("Group Filter"))
-o.placeholder = "Paramount"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_paramount_plus", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_paramount_plus", translate("Unlock Region Filter"))
-o.placeholder = "US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_paramount_plus", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_paramount_plus", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_paramount_plus", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Paramount Plus", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Paramount Plus"
-o:depends("stream_auto_select_paramount_plus", "1")
-
---Discovery Plus
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_discovery_plus", font_red..translate("Discovery Plus")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_discovery_plus", translate("Group Filter"))
-o.placeholder = "Discovery"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_discovery_plus", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_discovery_plus", translate("Unlock Region Filter"))
-o.placeholder = "US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_discovery_plus", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_discovery_plus", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_discovery_plus", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Discovery Plus", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Discovery Plus"
-o:depends("stream_auto_select_discovery_plus", "1")
-
---Bilibili
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_bilibili", font_red..translate("Bilibili")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_bilibili", translate("Group Filter"))
-o.placeholder = "Bilibili"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_bilibili", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", ListValue, "stream_auto_select_region_key_bilibili", translate("Unlock Region Filter"))
-o.default = "CN"
-o:value("CN", translate("China Mainland Only"))
-o:value("HK/MO/TW", translate("Hongkong/Macau/Taiwan"))
-o:value("TW", translate("Taiwan Only"))
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_bilibili", "1")
-o.rmempty = false
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_bilibili", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_bilibili", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Bilibili", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Bilibili"
-o:depends("stream_auto_select_bilibili", "1")
-
---Google not cn
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_google_not_cn", font_red..translate("Google Not CN")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_google_not_cn", translate("Group Filter"))
-o.placeholder = "Google"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_google_not_cn", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_google_not_cn", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_google_not_cn", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Google", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Google"
-o:depends("stream_auto_select_google_not_cn", "1")
-
---OpenAI
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_openai", font_red..translate("OpenAI")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_openai", translate("Group Filter"))
-o.placeholder = "OpenAI|ChatGPT|AI"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_openai", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_openai", translate("Unlock Region Filter"))
-o.placeholder = "US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_openai", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_openai", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_openai", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "OpenAI", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "OpenAI"
-o:depends("stream_auto_select_openai", "1")
-
--- Claude
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_claude", font_red..translate("Claude")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_claude", translate("Group Filter"))
-o.placeholder = "Claude|AI"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_claude", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_claude", translate("Unlock Region Filter"))
-o.placeholder = "US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_claude", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_claude", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_claude", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Claude", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Claude"
-o:depends("stream_auto_select_claude", "1")
-
--- Gemini
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_gemini", font_red..translate("Gemini")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_gemini", translate("Group Filter"))
-o.placeholder = "Gemini|AI"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_gemini", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_gemini", translate("Unlock Region Filter"))
-o.placeholder = "US"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_gemini", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_gemini", translate("Unlock Nodes Filter"))
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_gemini", "1")
-o.rmempty = true
-
-o = s:taboption("stream_enhance", DummyValue, "Gemini", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "Gemini"
-o:depends("stream_auto_select_gemini", "1")
-
 ---- update Settings
 o = s:taboption("geo_update", Flag, "geo_auto_update", font_red..bold_on..translate("Auto Update GeoIP MMDB")..bold_off..font_off)
 o.default = 0
@@ -1281,152 +809,14 @@ o = s:taboption("dashboard", DummyValue, "Yacd", translate("Switch(Update) Yacd 
 o.template="openclash/switch_dashboard"
 o.rawhtml = true
 
-o = s:taboption("dashboard", DummyValue, "Metacubexd", translate("Update Metacubexd Version"))
-o.template="openclash/switch_dashboard"
-o.rawhtml = true
-
-o = s:taboption("dashboard", DummyValue, "Zashboard", translate("Update Zashboard Version"))
-o.template="openclash/switch_dashboard"
-o.rawhtml = true
-
----- ipv6
-o = s:taboption("ipv6", Flag, "ipv6_enable", translate("Proxy IPv6 Traffic"))
-o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
-o.default = 0
-
-o = s:taboption("ipv6", ListValue, "ipv6_mode", translate("IPv6 Proxy Mode"))
-o:value("0", translate("TProxy Mode"))
-o:value("1", translate("Redirect Mode"))
-o:value("2", translate("TUN Mode"))
-o:value("3", translate("Mix Mode"))
-o.default = "0"
-o:depends("ipv6_enable", "1")
-
-o = s:taboption("ipv6", ListValue, "stack_type_v6", translate("Select Stack Type"))
-o.description = translate("Select Stack Type For TUN Mode, According To The Running Speed on Your Machine")
-o:depends({ipv6_mode= "2", en_mode = "redir-host"})
-o:depends({ipv6_mode= "2", en_mode = "fake-ip"})
-o:depends({ipv6_mode= "3", en_mode = "redir-host"})
-o:depends({ipv6_mode= "3", en_mode = "fake-ip"})
-o:value("system", translate("System　"))
-o:value("gvisor", translate("gVisor"))
-o:value("mixed", translate("Mixed"))
-o.default = "system"
-
-o = s:taboption("ipv6", Flag, "enable_v6_udp_proxy", translate("Proxy UDP Traffics"))
-o.description = translate("The Servers Must Support UDP forwarding").."<br>"..font_red..bold_on..translate("If Docker is Installed, UDP May Not Forward Normally")..bold_off..font_off
-o:depends("ipv6_mode", "0")
-o:depends("ipv6_mode", "1")
-o.default = 1
-
-o = s:taboption("ipv6", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
-o.description = translate("Enable to Resolve IPv6 DNS Requests")
-o.default = 0
-
-if op_mode == "fake-ip" then
-o = s:taboption("ipv6", Value, "fakeip_range6", translate("Fake-IP Range").." (IPv6 Cidr)")
-o.description = translate("Set Fake-IP Range").. " (IPv6 Cidr)"
-o:depends("ipv6_dns", "1")
-o:value("0", translate("Disable"))
-o:value("fdfe:dcba:9876::1/64")
-o.default = "0"
-o.placeholder = "fdfe:dcba:9876::1/64"
-function o.validate(self, value)
-	if value == "0" then
-		return "0"
-	end
-	if datatype.cidr6(value) then
-		return value
-	end
-	return "fdfe:dcba:9876::1/64"
-end
-end
-
-o = s:taboption("ipv6", ListValue, "china_ip6_route", translate("China IPv6 Route"))
-o.description = translate("Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option")
-o.default = 0
-o:value("0", translate("Disable"))
-o:value("1", translate("Bypass Mainland China"))
-o:value("2", translate("Bypass Overseas"))
-o:depends("ipv6_enable", "1")
-
-
-o = s:taboption("ipv6", Value, "local_network6_pass", translate("Local IPv6 Network Bypassed List"))
-o.template = "cbi/tvalue"
-o.description = translate("The Traffic of The Destination For The Specified Address Will Not Pass The Core")
-o.rows = 20
-o.wrap = "off"
-o:depends("ipv6_enable", "1")
-
-function o.cfgvalue(self, section)
-	return fs.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list") or ""
-end
-function o.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = fs.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list")
-		if value ~= old_value then
-			fs.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list", value)
-		end
-	end
-	return true
-end
-
-o = s:taboption("ipv6", Value, "chnroute6_pass", translate("Chnroute6 Bypassed List"))
-o.template = "cbi/tvalue"
-o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
-o.rows = 20
-o.wrap = "off"
-o:depends({ipv6_enable = "1", enable_redirect_dns = "1"})
-
-function o.cfgvalue(self, section)
-	return fs.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list") or ""
-end
-function o.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = fs.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list")
-		if value ~= old_value then
-			fs.writefile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list", value)
-		end
-	end
-	return true
-end
-
 ---- version update
 version_update_panel = s:taboption("version_update", DummyValue, "", nil)
 version_update_panel.template = "openclash/update"
 version_update_panel.version_tab = true
 
----- developer
-o = s:taboption("developer", Value, "firewall_custom")
-o.template = "cbi/tvalue"
-o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After Plugin Own Completely")
-o.rows = 30
-o.wrap = "off"
-
-function o.cfgvalue(self, section)
-	return fs.readfile("/etc/openclash/custom/openclash_custom_firewall_rules.sh") or ""
-end
-function o.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = fs.readfile("/etc/openclash/custom/openclash_custom_firewall_rules.sh")
-		if value ~= old_value then
-			fs.writefile("/etc/openclash/custom/openclash_custom_firewall_rules.sh", value)
-		end
-	end
-	return true
-end
-
 ---- debug
 o = s:taboption("debug", DummyValue, "", nil)
 o.template = "openclash/debug"
-
----- oixcloud
-oixcloud_panel = s:taboption("oixcloud", DummyValue, "", nil)
-oixcloud_panel.template = "openclash/oix_login"
-oixcloud_panel.rawhtml = true
 
 local t = {
 	{Commit, Apply}
@@ -1445,7 +835,7 @@ o.write = function()
 	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
 		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
 		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
-		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+		m.uci:set("openclash", "config", "smart_enable", "0")
 	end
 	m.uci:commit("openclash")
 end
@@ -1457,7 +847,7 @@ o.write = function()
 	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
 		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
 		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
-		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+		m.uci:set("openclash", "config", "smart_enable", "0")
 	end
 	m.uci:set("openclash", "config", "enable", 1)
 	m.uci:commit("openclash")
@@ -1466,6 +856,5 @@ o.write = function()
 end
 
 m:append(Template("openclash/toolbar_show"))
-m:append(Template("openclash/config_editor"))
 
 return m

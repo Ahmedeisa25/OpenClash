@@ -9,46 +9,31 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)/config
-	config PACKAGE_kmod-inet-diag
-	default y if PACKAGE_$(PKG_NAME)
-
 	config PACKAGE_luci-compat
 	default y if PACKAGE_$(PKG_NAME)
 
 	config PACKAGE_kmod-nft-tproxy
 	default y if PACKAGE_firewall4
 
-	config PACKAGE_kmod-ipt-nat
-	default y if ! PACKAGE_firewall4
-
-	config PACKAGE_iptables-mod-tproxy
-	default y if ! PACKAGE_firewall4
-
-	config PACKAGE_iptables-mod-extra
-	default y if ! PACKAGE_firewall4
-
-	config PACKAGE_dnsmasq_full_ipset
-	default y if ! PACKAGE_firewall4
-
 	config PACKAGE_dnsmasq_full_nftset
 	default y if PACKAGE_firewall4
-
-	config PACKAGE_ipset
-	default y if ! PACKAGE_firewall4
 endef
 
 define Package/$(PKG_NAME)
 	CATEGORY:=LuCI
 	SUBMENU:=3. Applications
-	TITLE:=LuCI support for clash
+	TITLE:=LuCI support for clash (MT7621 lite)
 	PKGARCH:=all
 	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
-	+ruby +ruby-yaml +kmod-tun +unzip
+	+ruby +ruby-yaml +unzip \
+	+PACKAGE_firewall4:kmod-nft-tproxy
 	MAINTAINER:=vernesong
 endef
 
 define Package/$(PKG_NAME)/description
-    A LuCI support for clash
+    Lightweight LuCI support for clash on MT7621 / 128MB RAM.
+    Defaults: nftables + Fake-IP + Rule mode. TUN, iptables, Smart core,
+    streaming unlock, and bundled dashboards/GeoSite are omitted.
 endef
 
 define Build/Prepare

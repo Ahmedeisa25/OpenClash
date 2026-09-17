@@ -223,9 +223,6 @@
                                 <div class="card-title"><%:Control Panel%><div class="help-link" title="<%:If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="dashboard-buttons">
                                     <button class="dashboard-btn" id="_webm"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_web"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_webz"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_webo"><%:Collecting data...%></button>
                                 </div>
                             </div>
                         </div>
@@ -2855,17 +2852,8 @@
                 DOMCache.stream_unlock_off.checked = status.stream_unlock !== '1';
             }
 
-            var webContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="return ycad_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: DOMCache.web, content: webContent});
-
-            var weboContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Dashboard%>" onclick="return net_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Dashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: DOMCache.webo, content: weboContent});
-
             var webmContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Metacubexd%>" onclick="return meta_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Metacubexd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webm, content: webmContent});
-
-            var webzContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="return net_zashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: DOMCache.webz, content: webzContent});
 
             var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
@@ -2881,20 +2869,8 @@
 
             StateManager.batchUpdateDOM(updates);
 
-            if (DOMCache.web) {
-                DOMCache.web.classList.toggle('hidden', !status.yacd);
-            }
-
-            if (DOMCache.webo) {
-                DOMCache.webo.classList.toggle('hidden', !status.dashboard);
-            }
-
             if (DOMCache.webm) {
                 DOMCache.webm.classList.remove('hidden');
-            }
-
-            if (DOMCache.webz) {
-                DOMCache.webz.classList.toggle('hidden', !status.zashboard);
             }
 
             StateManager.current_status = status;

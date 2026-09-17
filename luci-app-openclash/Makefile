@@ -1,7 +1,8 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.47.156-lite
+PKG_VERSION:=0.47.156
+PKG_RELEASE:=2
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -24,7 +25,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash (MT7621 lite)
 	PKGARCH:=all
-	DEPENDS:=+dnsmasq-full +bash +curl +ca-bundle +ip-full \
+	DEPENDS:=+dnsmasq-full +luci-compat +bash +curl +ca-bundle +ip-full \
 	+ruby +ruby-yaml +unzip \
 	+PACKAGE_firewall4:kmod-nft-tproxy
 	MAINTAINER:=vernesong

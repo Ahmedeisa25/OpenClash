@@ -120,7 +120,7 @@ o.default = o.disbled
 ---- disable-ipv6
 o = s:option(Flag, "disable_ipv6", translate("Disable-IPv6"),translate("Drop The Type of DNS Responsed"))
 o.rmempty = false
-o.default = o.disbled
+o.default = "1"
 
 ---- disable-qtype
 o = s:option(DynamicList, "disable_qtype", translate("Disable-Qtype"),translate("Drop The Type of DNS Responsed"))

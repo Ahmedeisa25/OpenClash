@@ -282,10 +282,8 @@ o.default = "both"
 o.rmempty = false
 
 o = s2:option(ListValue, "family", translate("Family"))
-o:value("both", translate("Both"))
 o:value("ipv4", translate("IPv4"))
-o:value("ipv6", translate("IPv6"))
-o.default = "both"
+o.default = "ipv4"
 o.rmempty = false
 
 o = s2:option(ListValue, "interface", translate("Interface"))
@@ -728,17 +726,9 @@ o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr
 o:value("https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china.txt", translate("gaoyifan-github-Version"))
 o.default = "https://ispip.clang.cn/all_cn.txt"
 
-o = s:taboption("chnr_update", Value, "chnr6_custom_url")
-o.title = translate("Custom Chnroute6 Lists URL")
-o.rmempty = false
-o.description = translate("Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit")
-o:value("https://ispip.clang.cn/all_cn_ipv6.txt", translate("Clang-CN-IPV6")..translate("(Default)"))
-o:value("https://raw.githubusercontent.com/gaoyifan/china-operator-ip/refs/heads/ip-lists/china6.txt", translate("gaoyifan-github-Version"))
-o.default = "https://ispip.clang.cn/all_cn_ipv6.txt"
-
 o = s:taboption("chnr_update", Button, translate("Chnroute Lists Update")) 
 o.title = translate("Update Chnroute Lists")
-o.description = translate("Current Version:").." "..font_green..bold_on.. "IPv4 ("..fs.get_resourse_mtime("/etc/openclash/china_ip_route.ipset")..")"..bold_off..font_off.." "..font_green..bold_on.. "& IPv6 ("..fs.get_resourse_mtime("/etc/openclash/china_ip6_route.ipset")..")"..bold_off..font_off
+o.description = translate("Current Version:").." "..font_green..bold_on.. "IPv4 ("..fs.get_resourse_mtime("/etc/openclash/china_ip_route.ipset")..")"..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -824,7 +814,6 @@ local t = {
 
 local CORE_VERSION = HTTP.formvalue("CORE_VERSION")
 local RELEASE_BRANCH = HTTP.formvalue("RELEASE_BRANCH")
-local SMART_ENABLE = HTTP.formvalue("SMART_ENABLE")
 
 a = m:section(Table, t)
 
@@ -832,10 +821,13 @@ o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+	m.uci:set("openclash", "config", "smart_enable", "0")
+	m.uci:set("openclash", "config", "ipv6_enable", "0")
+	m.uci:set("openclash", "config", "ipv6_dns", "0")
+	m.uci:set("openclash", "config", "ipv6_mode", "0")
+	if CORE_VERSION and RELEASE_BRANCH then
 		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
 		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
-		m.uci:set("openclash", "config", "smart_enable", "0")
 	end
 	m.uci:commit("openclash")
 end
@@ -844,10 +836,13 @@ o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+	m.uci:set("openclash", "config", "smart_enable", "0")
+	m.uci:set("openclash", "config", "ipv6_enable", "0")
+	m.uci:set("openclash", "config", "ipv6_dns", "0")
+	m.uci:set("openclash", "config", "ipv6_mode", "0")
+	if CORE_VERSION and RELEASE_BRANCH then
 		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
 		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
-		m.uci:set("openclash", "config", "smart_enable", "0")
 	end
 	m.uci:set("openclash", "config", "enable", 1)
 	m.uci:commit("openclash")

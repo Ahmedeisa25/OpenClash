@@ -33,7 +33,7 @@ endef
 define Package/$(PKG_NAME)/description
     Lightweight LuCI support for clash on MT7621 / 128MB RAM.
     Defaults: nftables + Fake-IP + Rule mode. TUN, iptables, Smart core,
-    streaming unlock, and bundled dashboards/GeoSite are omitted.
+    streaming unlock, and GeoSite are omitted. MetaCubeXD is bundled.
 endef
 
 define Build/Prepare

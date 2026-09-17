@@ -20,7 +20,7 @@
 安装 / Install
 ---
 
-This fork is a **lite** OpenClash for nftables + Fake-IP + Rule on MT7621 / 128MB RAM.
+This fork is a **lite** OpenClash for nftables + Fake-IP + Rule on MT7621 / 128MB RAM. **MetaCubeXD is bundled**; the Mihomo core is still downloaded after install.
 
 OpenWrt 25.12 and snapshots use **apk**. The `.ipk` is an opkg package. Feeding it to apk fails with:
 

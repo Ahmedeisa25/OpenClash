@@ -75,44 +75,6 @@ else
    LOG_OUT "Chnroute Cidr List Update Error, Please Try Again Later..."
 fi
 
-#ipv6
-LOG_OUT "Start Downloading The Chnroute6 Cidr List..."
-if [ -z "$CHNR6_CUSTOM_URL" ]; then
-   DOWNLOAD_FILE_CURL "https://ispip.clang.cn/all_cn_ipv6.txt" "/tmp/china_ip6_route.txt" "$chnr6_path"
-else
-   DOWNLOAD_FILE_CURL "$CHNR6_CUSTOM_URL" "/tmp/china_ip6_route.txt" "$chnr6_path"
-fi
-DOWNLOAD_RESULT=$?
-if [ "$DOWNLOAD_RESULT" -eq 0 ]; then
-   LOG_OUT "Chnroute6 Cidr List Download Success, Check Updated..."
-   #预处理
-   if [ -n "$FW4" ]; then
-      echo "define china_ip6_route = {" >/tmp/china_ip6_route.list
-      awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /tmp/china_ip6_route.txt >>/tmp/china_ip6_route.list
-      echo "}" >>/tmp/china_ip6_route.list
-      echo "add set inet fw4 china_ip6_route { type ipv6_addr; flags interval; auto-merge; }" >>/tmp/china_ip6_route.list
-      echo 'add element inet fw4 china_ip6_route $china_ip6_route' >>/tmp/china_ip6_route.list
-   else
-      echo "create china_ip6_route hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/china_ip6_route.list
-      awk '!/^$/&&!/^#/{printf("add china_ip6_route %s'" "'\n",$0)}' /tmp/china_ip6_route.txt >>/tmp/china_ip6_route.list
-   fi
-   cmp -s /tmp/china_ip6_route.list "$chnr6_path"
-   if [ "$?" -ne 0 ]; then
-      LOG_OUT "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
-      mv /tmp/china_ip6_route.list "$chnr6_path" >/dev/null 2>&1
-      if [ "$china_ip6_route" -ne 0 ] || [ "$disable_udp_quic" -eq 1 ]; then
-         restart=1
-      fi
-      LOG_OUT "Chnroute6 Cidr List Update Successful!"
-   else
-      LOG_OUT "Updated Chnroute6 Cidr List No Change, Do Nothing..."
-   fi
-elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
-   LOG_OUT "Updated Chnroute6 Cidr List No Change, Do Nothing..."
-else
-   LOG_OUT "Chnroute6 Cidr List Update Error, Please Try Again Later..."
-fi
-
 rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
 
 dec_job_counter_and_restart "$restart"

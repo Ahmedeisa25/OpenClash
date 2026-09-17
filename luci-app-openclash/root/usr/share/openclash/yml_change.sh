@@ -246,7 +246,7 @@ yml_dns_get()
    [ -n "$ecs_subnet" ] && ecs_subnet_param="ecs=$ecs_subnet" || ecs_subnet_param=""
    [ "$ecs_override" = "1" ] && [ -n "$ecs_subnet_param" ] && ecs_override_param="ecs-override=true" || ecs_override_param=""
    [ "$disable_ipv4" = "1" ] && disable_ipv4_param="disable-ipv4=true" || disable_ipv4_param=""
-   [ "$disable_ipv6" = "1" ] && disable_ipv6_param="disable-ipv6=true" || disable_ipv6_param=""
+   disable_ipv6_param="disable-ipv6=true"
    [ "$disable_reuse" = "1" ] && disable_reuse_param="disable-reuse=true" || disable_reuse_param=""
 
    params=""
@@ -348,7 +348,7 @@ begin
    secret = '$2'
    controller_port = '$3'
    redir_port = '$4'
-   enable_ipv6 = '$6' == '1'
+   enable_ipv6 = false
    http_port = '$7'
    socks_port = '$8'
    log_level = '$9'
@@ -358,7 +358,7 @@ begin
    dns_listen_port = '${13}'
    mixed_port = '${14}'
    tproxy_port = '${15}'
-   dns_ipv6 = '${16}' == '1'
+   dns_ipv6 = false
    store_fake_ip = '${17}' == '1'
    enable_sniffer = '${18}' == '1'
    geodata_mode = '${19}' == '1'
@@ -370,7 +370,7 @@ begin
    sniffer_parse_pure_ip = '${26}' == '1'
    find_process_mode = '${27}'
    fake_ip_range = '${28}'
-   ipv6_mode = '${29}'
+   ipv6_mode = '0'
    unified_delay = '${31}' == '1'
    respect_rules = '${32}' == '1'
    fake_ip_filter_mode = '${33}'
@@ -381,10 +381,10 @@ begin
    geoip_custom_url = '${38}'
    geosite_custom_url = '${39}'
    geoasn_custom_url = '${40}'
-   lgbm_auto_update = '${41}' == '1'
+   lgbm_auto_update = false
    lgbm_custom_url = '${42}'
    lgbm_update_interval = '${43}'
-   smart_collect = '${44}' == '1'
+   smart_collect = false
    smart_collect_size = '${45}'
    fake_ip_range6 = '${46}'
    fake_ip_range6_enable = '${47}' == '1'
@@ -444,7 +444,7 @@ begin
             Value['keep-alive-interval'] = 15
             Value['keep-alive-idle'] = 600
          end
-         Value['ipv6'] = enable_ipv6
+         Value['ipv6'] = false
          Value['interface-name'] = interface_name if interface_name != '0'
          Value['geodata-mode'] = true if geodata_mode
          Value['geodata-loader'] = geodata_loader if geodata_loader != '0'
@@ -483,8 +483,8 @@ begin
          end
 
          Value['dns']['enable'] = true
-         Value['dns']['ipv6'] = dns_ipv6
-         Value['ipv6'] = true if dns_ipv6
+         Value['dns']['ipv6'] = false
+         Value['dns'].delete('fake-ip-range6')
 
          if fake_ip_mode == 'redir-host'
             Value['dns']['enhanced-mode'] = 'redir-host'
@@ -492,9 +492,6 @@ begin
          else
             Value['dns']['enhanced-mode'] = 'fake-ip'
             Value['dns']['fake-ip-range'] = fake_ip_range
-            if Value['dns']['ipv6'] and fake_ip_range6_enable
-               Value['dns']['fake-ip-range6'] = fake_ip_range6
-            end
          end
          Value['dns']['listen'] = '0.0.0.0:' + dns_listen_port
          Value['dns']['respect-rules'] = respect_rules

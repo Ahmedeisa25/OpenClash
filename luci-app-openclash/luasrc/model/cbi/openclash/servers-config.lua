@@ -375,12 +375,6 @@ o.placeholder = translate("127.0.0.1")
 o.datatype = "ip4addr"
 o:depends("type", "wireguard")
 
-o = s:option(Value, "wg_ipv6", translate("IPv6"))
-o.rmempty = true
-o.placeholder = translate("your_ipv6")
-o.datatype = "ip6addr"
-o:depends("type", "wireguard")
-
 o = s:option(Value, "private_key", translate("Private Key"))
 o.rmempty = true
 o.placeholder = translate("eCtXsJZ27+4PbhDkHnB923tkUn2Gj59wZw5wFA75MnU=")
@@ -982,10 +976,6 @@ o = s:option(Value, "masque_ip", translate("IP"))
 o:depends("type", "masque")
 o.rmempty = true
 
-o = s:option(Value, "masque_ipv6", translate("IPv6"))
-o:depends("type", "masque")
-o.rmempty = true
-
 o = s:option(Value, "masque_mtu", translate("MTU"))
 o:depends("type", "masque")
 o.rmempty = true
@@ -1096,12 +1086,9 @@ o:depends("type", "trusttunnel")
 -- [[ ip version ]]--
 o = s:option(ListValue, "ip_version", translate("IP Version"))
 o.rmempty = true
-o:value("dual")
 o:value("ipv4")
 o:value("ipv4-prefer")
-o:value("ipv6")
-o:value("ipv6-prefer")
-o.default = "ipv4-prefer"
+o.default = "ipv4"
 o:depends("type", "ss")
 o:depends("type", "ssr")
 o:depends("type", "vmess")

@@ -141,7 +141,12 @@ uci -q set openclash.config.geosite_auto_update='0'
 uci -q set openclash.config.geoip_auto_update='0'
 uci -q set openclash.config.geoasn_auto_update='0'
 uci -q set openclash.config.geo_auto_update='0'
-uci -q set openclash.config.default_dashboard='yacd'
+uci -q set openclash.config.default_dashboard='metacubexd'
+# GitHub is often blocked; jsDelivr mirror is already used for GEO files.
+cur_cdn=$(uci_get_config "github_address_mod" || echo 0)
+if [ -z "$cur_cdn" ] || [ "$cur_cdn" = "0" ]; then
+	uci -q set openclash.config.github_address_mod='https://testingcf.jsdelivr.net/'
+fi
 uci -q set dhcp.@dnsmasq[0].filter_aaaa='1'
 uci -q commit dhcp
 MEM_KB=$(awk '/MemTotal/{print $2}' /proc/meminfo 2>/dev/null)
@@ -156,6 +161,11 @@ case "${DISTRIB_ARCH}" in
 		uci -q set openclash.config.core_version='linux-mipsle-softfloat'
 		;;
 esac
+# Never leave core_version empty/0 — openclash_core.sh skips download then
+cur_core=$(uci_get_config "core_version" || echo 0)
+if [ -z "$cur_core" ] || [ "$cur_core" = "0" ]; then
+	uci -q set openclash.config.core_version='linux-mipsle-softfloat'
+fi
 
 #Backup Resolvfile
 if [ -n "$(uci -q get dhcp.@dnsmasq[0].resolvfile)" ]; then

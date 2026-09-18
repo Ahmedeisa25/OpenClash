@@ -8,6 +8,7 @@
 <head>
 <script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <link rel="stylesheet" href="/luci-static/resources/openclash/css/oc.css?v=<%=plugin_version%>">
+<script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
 </head>
 <fieldset class="cbi-section">
     <table width="100%">
@@ -15,6 +16,14 @@
         <td colspan="4">
             <div class="oc">
                 <div class="main-cards-container">
+                    <div class="announcement-card">
+                        <div id="announcement-banner" class="announcement-banner">
+                            <div class="megaphone-container">
+                                <svg id="megaphone" width="15" height="15"><use href="#oc-icon-megaphone"/></svg>
+                            </div>
+                            <div id="announcement-content" class="announcement-content"></div>
+                        </div>
+                    </div>
                     <div class="main-card">
                         <!-- Row 1: Running Status -->
                         <div class="card-row full-width core-status-row">
@@ -45,6 +54,10 @@
                                         <button type="button" class="icon-btn action-btn" id="restart_core" title="<%:Restart%>" onclick="return restartCore()">
                                             <svg width="14" height="14"><use href="#oc-icon-refresh"/></svg>
                                         </button>
+                                        <button type="button" class="icon-btn action-btn" id="edit_overwrite" title="<%:Overwrite Module%>" onclick="return editOverwrite()">
+                                            <svg width="32" height="32"><use href="#oc-icon-overwrite"/></svg>
+                                            <span class="btn-text"><%:Overwrite Module%></span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-actions">
@@ -52,6 +65,15 @@
                                         <svg id="sun-icon" width="14" height="14"><use href="#oc-icon-sun"/></svg>
                                         <svg id="moon-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-moon"/></svg>
                                         <svg id="auto-icon" width="14" height="14" class="oc-hidden"><use href="#oc-icon-auto-theme"/></svg>
+                                    </button>
+                                    <button type="button" class="icon-btn action-btn" id="go_wiki" title="<%:Wiki%>" onclick="return wikipage()"><svg width="14" height="14"><use href="#oc-icon-wiki"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_tutorials" title="<%:Tutorials%>" onclick="return gitbookpage()"><svg width="14" height="14"><use href="#oc-icon-book"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_star" title="<%:Star%>" onclick="return homepage()"><svg width="14" height="14"><use href="#oc-icon-star"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_telegram" title="<%:Telegram%>" onclick="return telegrampage()"><svg width="14" height="14"><use href="#oc-icon-telegram"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_sponsor" title="<%:Sponsor%>" onclick="return sponsorpage()"><svg width="14" height="14"><use href="#oc-icon-heart"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="logo_btn" title="Mihomo" onclick="return winOpen('https://www.github.com/metacubex/mihomo');">
+                                        <img id="_logo" src="/luci-static/resources/openclash/img/logo.png?v=<%=plugin_version%>" loading="lazy" width="14px" height="14px" alt="Mihomo"/>
+                                        <span class="logo-text">Powered by <span class="mihomo-link">Mihomo</span></span>
                                     </button>
                                 </div>
                             </div>
@@ -65,7 +87,9 @@
                                     <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
                                         <div id="radio-ru-mode" class="cbi-button-group oc-inline-flex">
-                                            <input type="radio" id="normal" name="radios-ru" value="" onclick="return switch_run_mode(this.value)" checked="checked"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Fake-IP%></label>
+                                            <input type="radio" id="normal" name="radios-ru" value="" onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
+                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
+                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -116,6 +140,17 @@
                                         <div id="dns-setting-respect" class="cbi-button-group oc-inline-flex">
                                             <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
+                                <div class="card-content">
+                                    <div class="card-controls">
+                                        <div id="stream-unlock-setting" class="cbi-button-group oc-inline-flex">
+                                            <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/><label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/><label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -222,7 +257,7 @@
                             <div class="sub-card dashboard-container">
                                 <div class="card-title"><%:Control Panel%><div class="help-link" title="<%:If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel%>"><svg width="12" height="12"><use href="#oc-icon-help"/></svg></div></div>
                                 <div class="dashboard-buttons">
-                                    <button class="dashboard-btn" id="_web"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_webm"><%:Collecting data...%></button>
                                 </div>
                             </div>
                         </div>
@@ -254,6 +289,37 @@
                     </div>
                 </div>
 
+            <!-- Usage Help Model -->
+            <div class="config-upload-model-overlay" id="usage-help-overlay">
+                <div class="config-upload-model usage-help-model" id="usage-help-model">
+                    <div class="config-upload-header">
+                        <div class="config-upload-title"><%:Usage Help%></div>
+                        <button type="button" class="icon-btn" onclick="UsageHelpManager.hide()">
+                            <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
+                        </button>
+                    </div>
+                    <div class="config-upload-content">
+                        <div class="form-group">
+                            <label class="highlight-label"><%:Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:%></label>
+                            <textarea id="usage-help-textarea" class="form-textarea oc-hidden"></textarea>
+                            <div id="usage-help-editor"></div>
+                        </div>
+                    </div>
+                    <div class="config-upload-footer">
+                        <div class="config-upload-status" id="usage-help-status"></div>
+                        <div class="config-upload-buttons">
+                            <button type="button" class="btn cancel-btn" onclick="UsageHelpManager.hide()"><%:Cancel%></button>
+                            <button type="button" class="btn upload-btn" onclick="UsageHelpManager.copyAndHide()"><%:Copy%></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usage Help Button -->
+            <div class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
+                <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
+                <span class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></span>
+            </div>
             </div>
         </td>
     </tr>
@@ -2587,7 +2653,9 @@
             '<%:using the fake IP mode can get a faster access experience%>',
             '<%:the nameserver group must have at least one server set when using custom DNS%>',
             '<%:after started, please wait patiently until the connection is normal%>',
+            '<%:if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal%>',
             '<%:you can update the version in the settings page%>',
+            '<%:Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%>',
             '<%:Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%>',
             '<%:Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%>',
             '<%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%>'
@@ -2720,7 +2788,7 @@
                 this.statusEl.textContent = '';
             }
 
-            if (!this._editor && typeof CM6 !== 'undefined') {
+            if (!this._editor) {
                 var prompt = this.buildPrompt();
                 this.textarea.value = prompt;
                 var container = document.getElementById('usage-help-editor');
@@ -2847,22 +2915,13 @@
                 else if (status.oversea == "1") DOMCache.oc_setting_oversea_1.checked = true;
                 else if (status.oversea == "2") DOMCache.oc_setting_oversea_2.checked = true;
             }
-            if (DOMCache.stream_unlock_on && !SettingsManager.pendingOperations.has('stream_unlock_' + status.stream_unlock)) {
+            if (!SettingsManager.pendingOperations.has('stream_unlock_' + status.stream_unlock)) {
                 DOMCache.stream_unlock_on.checked = status.stream_unlock === '1';
                 DOMCache.stream_unlock_off.checked = status.stream_unlock !== '1';
             }
 
-            var webContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="return ycad_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: DOMCache.web, content: webContent});
-
-            var weboContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Dashboard%>" onclick="return net_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Dashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: DOMCache.webo, content: weboContent});
-
             var webmContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Metacubexd%>" onclick="return meta_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Metacubexd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webm, content: webmContent});
-
-            var webzContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="return net_zashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: DOMCache.webz, content: webzContent});
 
             var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
@@ -2878,20 +2937,8 @@
 
             StateManager.batchUpdateDOM(updates);
 
-            if (!status.yacd && DOMCache.web) {
-                DOMCache.web.classList.add('hidden');
-            }
-
-            if (!status.dashboard && DOMCache.webo) {
-                DOMCache.webo.classList.add('hidden');
-            }
-
-            if (!status.metacubexd && DOMCache.webm) {
-                DOMCache.webm.classList.add('hidden');
-            }
-
-            if (!status.zashboard && DOMCache.webz) {
-                DOMCache.webz.classList.add('hidden');
+            if (DOMCache.webm) {
+                DOMCache.webm.classList.remove('hidden');
             }
 
             StateManager.current_status = status;
@@ -2964,6 +3011,8 @@
     setTimeout(function() {
         OverwriteSubscribeManager.init();
         SubscriptionManager.init();
+        UsageHelpManager.init();
+        loadAnnouncement();
     }, 300);
 
     setTimeout(function() { check_core(); }, 1000);
@@ -3417,7 +3466,10 @@
     }
 
     var all_one_key_update = debounceButton(function(btn) {
-        window.location.href = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "settings")%>';
+        btn.value = '<%:Checking...%>';
+        update();
+        btn.value = '<%:Check Update%>';
+        btn.disabled = false;
         return false;
     });
 
@@ -3749,7 +3801,7 @@
                     }
                 }
 
-                if (DOMCache.stream_unlock_on && !SettingsManager.pendingOperations.has('stream_unlock_' + info.stream_unlock)) {
+                if (!SettingsManager.pendingOperations.has('stream_unlock_' + info.stream_unlock)) {
                     DOMCache.stream_unlock_on.checked = info.stream_unlock === '1';
                     DOMCache.stream_unlock_off.checked = info.stream_unlock !== '1';
                 }
@@ -4086,17 +4138,76 @@
     }
 
     function uploadConfig() {
-        window.location.href = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "config-subscribe")%>';
+        if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
+            ConfigUploader.show("ConfigFileManager.refreshConfigList()");
+        } else {
+            setTimeout(function() {
+                if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
+                    ConfigUploader.show("ConfigFileManager.refreshConfigList()");
+                } else {
+                    alert('<%:Config editor not ready, please try again%>');
+                }
+            }, 500);
+        }
+
         return false;
     }
 
     function editSubscribe() {
-        window.location.href = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "config-subscribe")%>';
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+
+        var filename = SubscriptionManager.extractFilename(currentConfig);
+        if (!filename) {
+            alert('<%:Invalid config file selected%>');
+            return false;
+        }
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_subscribe_data")%>', {
+            filename: filename
+        }, function(x, status) {
+            if (x.status == 200) {
+                if (ConfigUploader && ConfigUploader.showEditSubscribe) {
+                    ConfigUploader.showEditSubscribe(status, filename, "ConfigFileManager.refreshConfigList()");
+                } else {
+                    setTimeout(function() {
+                        if (ConfigUploader && ConfigUploader.showEditSubscribe) {
+                            ConfigUploader.showEditSubscribe(status, filename, "ConfigFileManager.refreshConfigList()");
+                        } else {
+                            alert('<%:Config editor not ready, please try again%>');
+                        }
+                    }, 500);
+                }
+            } else {
+                alert('<%:Failed to get subscribe data%>');
+            }
+        });
+
         return false;
     }
 
     function editConfig() {
-        window.location.href = '<%=luci.dispatcher.build_url("admin", "services", "openclash", "config")%>';
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+
+        if (ConfigEditor.show) {
+            ConfigEditor.show(currentConfig);
+        } else {
+            setTimeout(function() {
+                if (ConfigEditor.show) {
+                    ConfigEditor.show(currentConfig);
+                } else {
+                    alert('<%:Config editor not ready, please try again%>');
+                }
+            }, 500);
+        }
+
         return false;
     }
 

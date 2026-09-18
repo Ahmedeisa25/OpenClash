@@ -68,7 +68,7 @@ function index()
 	entry({"admin", "services", "openclash", "core_download"}, call("core_download"))
 	entry({"admin", "services", "openclash", "announcement"}, call("action_announcement"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Plugin Settings"), 30).leaf = true
-	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"), nil).leaf = true
+	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"),_("Overwrite Settings"), 40).leaf = true
 	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Subscribe"), 60).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),nil).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -278,7 +278,7 @@ function release_branch()
 end
 
 local function smart_enable()
-	return "0"
+	return fs.uci_get_config("config", "smart_enable") or "0"
 end
 
 local function is_oix()
@@ -292,7 +292,7 @@ end
 
 local function corelv()
 	local core_meta_lv = ""
-	local core_smart_enable = "0"
+	local core_smart_enable = fs.uci_get_config("config", "smart_enable") or "0"
 	local oix_token = fs.uci_get_config("config", "oix_token") or ""
 
 	local cache = ov.fetch_version_history(release_branch(), false)
@@ -351,7 +351,6 @@ local function coreup()
 	uci:set("openclash", "config", "enable", "1")
 	uci:commit("openclash")
 	local type = HTTP.formvalue("core_type")
-	if type == "Smart" then type = "Meta" end
 	return SYS.call(string.format("/usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", type))
 end
 
@@ -362,7 +361,9 @@ local function save_corever_branch()
 	if HTTP.formvalue("release_branch") then
 		uci:set("openclash", "config", "release_branch", HTTP.formvalue("release_branch"))
 	end
-	uci:set("openclash", "config", "smart_enable", "0")
+	if HTTP.formvalue("smart_enable") then
+		uci:set("openclash", "config", "smart_enable", HTTP.formvalue("smart_enable"))
+	end
 	uci:commit("openclash")
 	return "success"
 end
@@ -3821,9 +3822,16 @@ function action_switch_oc_setting()
 		uci:set("openclash", "@overwrite[0]", "enable_respect_rules", tonumber(value))
 		uci:commit("openclash")
 	elseif setting == "oversea" then
+		oversea_v6_setting = fs.uci_get_config("config", "ipv6_enable") or "0"
+		if oversea_v6_setting ~= "0" then
+			uci:set("openclash", "config", "china_ip6_route", value)
+		end
 		uci:set("openclash", "config", "china_ip_route", value)
 		uci:commit("openclash")
 		if is_running() then
+			if oversea_v6_setting ~= "0" then
+				uci:set("openclash", "@overwrite[0]", "china_ip6_route", value)
+			end
 			uci:set("openclash", "@overwrite[0]", "china_ip_route", value)
 			uci:commit("openclash")
 			SYS.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")

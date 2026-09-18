@@ -20,7 +20,11 @@
 安装 / Install
 ---
 
-This fork is a **lite** OpenClash for nftables + Fake-IP + Rule on MT7621 / 128MB RAM. **MetaCubeXD is bundled**; the Mihomo core is still downloaded after install.
+This fork is a **lite** OpenClash for nftables + Fake-IP + Rule on MT7621 / 128MB RAM.
+
+- **MetaCubeXD is bundled** (Vite build that works under `/ui/metacubexd/`). Control Panel shows MetaCubeXD only.
+- **Mihomo core is not inside the plugin.** After install, OpenClash downloads `linux-mipsle-softfloat` through the jsDelivr mirror (`https://testingcf.jsdelivr.net/`). Change the CDN under **Overwrite Settings → GitHub Address Proxy** if needed.
+- LuCI menus and Plugin Settings tabs match upstream. Lite defaults (Fake-IP, no IPv6, no Smart, no TUN) stay in the config.
 
 OpenWrt 25.12 and snapshots use **apk**. The `.ipk` is an opkg package. Feeding it to apk fails with:
 

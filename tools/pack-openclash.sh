@@ -13,7 +13,7 @@ PKG_VERSION="$(awk -F ':=' '/^PKG_VERSION:=/{gsub(/[[:space:]]/, "", $2); print 
 APK_VERSION="$PKG_VERSION"
 IPK_VERSION="${PKG_VERSION}-lite"
 MAINTAINER="vernesong"
-DESCRIPTION="Lightweight LuCI support for clash on MT7621 / 128MB RAM. Defaults: nftables + Fake-IP + Rule mode. MetaCubeXD bundled."
+DESCRIPTION="Lightweight LuCI support for clash on MT7621 / 128MB RAM. Defaults: nftables + Fake-IP + Rule mode. MetaCubeXD bundled. Mihomo core is downloaded after install via jsDelivr."
 DEPENDS_IPK="libc, dnsmasq-full, bash, curl, ca-bundle, ip-full, ruby, ruby-yaml, unzip, luci-compat"
 DEPENDS_APK="libc dnsmasq-full bash curl ca-bundle ip-full ruby ruby-yaml unzip luci-compat"
 

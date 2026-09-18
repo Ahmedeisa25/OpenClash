@@ -52,20 +52,34 @@ small_flash_memory=$(uci_get_config "small_flash_memory")
 CPU_MODEL=$(uci_get_config "core_version")
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 
-if [ -z "$DIRECT_CORE_URL" ]; then
-   lua /usr/share/openclash/openclash_version.lua "$github_address_mod" 2>/dev/null
-   if [ "$CORE_TYPE" = "Oix" ]; then
-      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.oix.ver" 2>/dev/null)
-   elif [ "$CORE_TYPE" = "Smart" ]; then
-      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.core_smart" 2>/dev/null)
-   else
-      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.core_meta" 2>/dev/null)
-   fi
-   if [ -z "$CORE_LV" ]; then
-      LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
-      del_lock
-      exit 0
-   fi
+# core_version '0' skips the download entirely. Detect arch instead of bailing.
+if [ -z "$CPU_MODEL" ] || [ "$CPU_MODEL" = "0" ]; then
+   [ -f /etc/openwrt_release ] && . /etc/openwrt_release
+   case "${DISTRIB_ARCH:-}" in
+      aarch64_*) CPU_MODEL="linux-arm64" ;;
+      arm_cortex-a5|arm_cortex-a5[^0-9]*|arm_cortex-a7|arm_cortex-a7[^0-9]*|arm_cortex-a8*|arm_cortex-a9*|arm_cortex-a12*|arm_cortex-a15*|arm_cortex-a17*) CPU_MODEL="linux-armv7" ;;
+      arm_arm1176jzf-s*|arm_arm1136*|arm_mpcore*) CPU_MODEL="linux-armv6" ;;
+      arm*) CPU_MODEL="linux-armv5" ;;
+      i386_*) CPU_MODEL="linux-386" ;;
+      mips64el_*) CPU_MODEL="linux-mips64le" ;;
+      mips64_*) CPU_MODEL="linux-mips64" ;;
+      mips_*) CPU_MODEL="linux-mips-softfloat" ;;
+      mipsel_*) CPU_MODEL="linux-mipsle-softfloat" ;;
+      riscv64*) CPU_MODEL="linux-riscv64" ;;
+      loongarch64*|loongarch_*) CPU_MODEL="linux-loong64-abi2" ;;
+      x86_64) CPU_MODEL="linux-amd64-v1" ;;
+      *)
+         case "$(uname -m 2>/dev/null)" in
+            mips*) CPU_MODEL="linux-mipsle-softfloat" ;;
+            aarch64) CPU_MODEL="linux-arm64" ;;
+            x86_64) CPU_MODEL="linux-amd64-v1" ;;
+            *) CPU_MODEL="linux-mipsle-softfloat" ;;
+         esac
+         ;;
+   esac
+   uci -q set openclash.config.core_version="$CPU_MODEL"
+   uci -q commit openclash
+   LOG_TIP "Core arch unset, using $CPU_MODEL"
 fi
 
 if [ "$small_flash_memory" != "1" ]; then
@@ -79,6 +93,27 @@ fi
 TARGET_CORE_PATH="$meta_core_path"
 CORE_CV=$($TARGET_CORE_PATH -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
 TMP_FILE="${TARGET_CORE_PATH}.new.$$"
+
+if [ -z "$DIRECT_CORE_URL" ]; then
+   lua /usr/share/openclash/openclash_version.lua "$github_address_mod" 2>/dev/null
+   if [ "$CORE_TYPE" = "Oix" ]; then
+      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.oix.ver" 2>/dev/null)
+   elif [ "$CORE_TYPE" = "Smart" ]; then
+      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.core_smart" 2>/dev/null)
+   else
+      CORE_LV=$(jsonfilter -i /tmp/openclash_version_history.json -e "@.${RELEASE_BRANCH}.latest.core_meta" 2>/dev/null)
+   fi
+   if [ -z "$CORE_LV" ]; then
+      if [ -z "$CORE_CV" ]; then
+         LOG_TIP "【"$CORE_TYPE"】Core Version Check Failed, Downloading Latest Package Anyway..."
+         CORE_LV="unknown"
+      else
+         LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
+         del_lock
+         exit 0
+      fi
+   fi
+fi
 
 if [ "$CORE_TYPE" = "Oix" ]; then
    CORE_URL_PATH=""

@@ -47,6 +47,17 @@ EOF
       [ "$script_found" -eq 1 ]
    }
 
+   # Nuxt MetaCubeXD gh-pages uses buildAssetsDir:"/_nuxt/" which requests
+   # http://lan:9090/_nuxt/... instead of /ui/metacubexd/_nuxt/...
+   fix_metacubexd_asset_base() {
+      local dir="$1"
+      local f
+      for f in "$dir"/index.html "$dir"/200.html "$dir"/404.html; do
+         [ -f "$f" ] || continue
+         sed -i 's|buildAssetsDir:"/_nuxt/"|buildAssetsDir:"./_nuxt/"|g' "$f"
+      done
+   }
+
    cleanup_dashboard_tmp() {
       rm -rf "$DASH_FILE_DIR" "$DASH_FILE_TMP" "$NEW_FILE_DIR" "$OLD_FILE_DIR" >/dev/null 2>&1
    }
@@ -97,6 +108,9 @@ EOF
 		DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages"
       FILE_PATH_INCLUDE="metacubexd-gh-pages"
 	fi
+   if [ "$github_address_mod" != "0" ] && [ "$github_address_mod" != "https://cdn.jsdelivr.net/" ] && [ "$github_address_mod" != "https://fastly.jsdelivr.net/" ] && [ "$github_address_mod" != "https://testingcf.jsdelivr.net/" ]; then
+      DOWNLOAD_PATH="${github_address_mod}${DOWNLOAD_PATH}"
+   fi
    TARGET_FILE_DIR="${UNPACK_FILE_DIR%/}"
    TARGET_PARENT_DIR="$(dirname "$TARGET_FILE_DIR")"
    NEW_FILE_DIR="${TARGET_PARENT_DIR}/.openclash_dashboard_new.$$"
@@ -113,6 +127,7 @@ EOF
          if [ "$?" -eq "0" ] && [ -d "$DASH_FILE_TMP$FILE_PATH_INCLUDE" ]; then
             mkdir -p "$NEW_FILE_DIR" >/dev/null 2>&1 || log_unzip_error
             cp -rf "$DASH_FILE_TMP$FILE_PATH_INCLUDE"/. "$NEW_FILE_DIR" >/dev/null 2>&1 || log_unzip_error
+            [ "$DASH_NAME" = "Metacubexd" ] || [ "$(basename "$UNPACK_FILE_DIR")" = "metacubexd" ] && fix_metacubexd_asset_base "$NEW_FILE_DIR"
             validate_dashboard_dir "$NEW_FILE_DIR" || log_unzip_error
 
             mkdir -p "$TARGET_PARENT_DIR" >/dev/null 2>&1 || log_unzip_error
